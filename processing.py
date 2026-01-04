@@ -258,6 +258,13 @@ def deskew_opencv(arr: np.ndarray, sensitivity: float) -> np.ndarray:
         angle = -angle
     if math.isclose(angle, 0, abs_tol=0.1):
         return arr
+    # Documents rarely need more than a small correction; large angles often
+    # indicate that the detected contour is not representative of the page
+    # (e.g. a diagonal element near the edge). Skip adjustment when the
+    # detected angle is beyond a reasonable threshold to avoid rotating pages
+    # incorrectly, while still allowing small de-skews.
+    if abs(angle) > 15:
+        return arr
     angle *= max(0.1, min(sensitivity, 1.0))
     (h, w) = gray.shape[:2]
     center = (w // 2, h // 2)
