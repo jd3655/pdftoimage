@@ -32,6 +32,7 @@ from utils import (
     is_supported_file,
     pdf_page_filename,
     safe_stem,
+    temporary_named_file,
     unique_name,
     zip_directory_to_file,
 )
@@ -121,7 +122,8 @@ def process_inputs(
 
     _write_metadata(temp_dir, log_lines, manifest)
 
-    zip_out = Path(tempfile.mkstemp(prefix="result_", suffix=".zip")[1])
+    primary_input = _select_primary_input(all_inputs)
+    zip_out = _named_zip_path(primary_input)
     zip_directory_to_file(temp_dir, zip_out)
     _maybe_progress(progress_cb, 1.0, "Packaging complete")
     return zip_out, "\n".join(log_lines)
@@ -290,3 +292,15 @@ def _write_metadata(temp_dir: Path, log_lines: List[str], manifest: List[Dict[st
 def _maybe_progress(cb: Optional[Callable[[float, str], None]], fraction: float, desc: str) -> None:
     if cb:
         cb(fraction, desc)
+
+
+def _select_primary_input(inputs: List[Path]) -> Optional[Path]:
+    pdf_input = next((p for p in inputs if p.suffix.lower() == ".pdf"), None)
+    if pdf_input:
+        return pdf_input
+    return inputs[0] if inputs else None
+
+
+def _named_zip_path(primary_input: Optional[Path]) -> Path:
+    stem = safe_stem(primary_input.name) if primary_input else "result"
+    return temporary_named_file(stem, ".zip")
