@@ -87,3 +87,14 @@ def ensure_unique_path(rel_dir: Path, filename: str, existing_paths: Set[Path]) 
 
 def filter_supported(paths: Iterable[str | Path]) -> List[Path]:
     return [Path(p) for p in paths if is_supported_file(p)]
+
+
+def temporary_named_file(stem: str, suffix: str) -> Path:
+    base = safe_stem(stem)
+    temp_dir = Path(tempfile.gettempdir())
+    candidate = temp_dir / f"{base}{suffix}"
+    counter = 1
+    while candidate.exists():
+        candidate = temp_dir / f"{base}-{counter}{suffix}"
+        counter += 1
+    return candidate
