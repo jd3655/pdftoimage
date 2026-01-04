@@ -1,0 +1,6 @@
+gradio
+pdf2image
+pillow
+opencv-python
+numpy
+pillow-heif
