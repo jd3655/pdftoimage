@@ -75,7 +75,7 @@ def start_processing(
 
     try:
         zip_path, log_text = process_inputs(files, zip_file, settings, cb, cancel_flag)
-        return zip_path, log_text
+        return str(zip_path), log_text
     except Exception as exc:
         return None, f"Error: {exc}\n" + "\n".join(status_lines)
 
