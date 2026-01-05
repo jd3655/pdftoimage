@@ -10,7 +10,11 @@ pdf2image_spec = importlib.util.find_spec("pdf2image")
 if not (cv2_spec and numpy_spec and pillow_spec and pdf2image_spec):  # pragma: no cover - environment dependent
     pytest.skip("Skipping processing tests; dependencies not available", allow_module_level=True)
 
-import cv2  # type: ignore  # noqa: E402
+try:
+    import cv2  # type: ignore  # noqa: E402
+except Exception:  # pragma: no cover - environment dependent
+    pytest.skip("Skipping processing tests; OpenCV runtime dependency missing (libGL)", allow_module_level=True)
+
 import numpy as np  # type: ignore  # noqa: E402
 
 from processing import deskew_opencv  # noqa: E402

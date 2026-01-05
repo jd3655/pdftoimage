@@ -1,8 +1,20 @@
 from pathlib import Path
+import importlib.util
+import sys
 
 import pytest
 
-from utils import filter_supported, pdf_page_filename, safe_stem, temporary_named_file, unique_name
+MODULE_PATH = Path(__file__).resolve().parents[1] / "utils.py"
+spec = importlib.util.spec_from_file_location("pdftoimage_utils", MODULE_PATH)
+utils = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
+assert spec and spec.loader
+spec.loader.exec_module(utils)  # type: ignore[arg-type]
+sys.modules["pdftoimage_utils"] = utils
+filter_supported = utils.filter_supported
+pdf_page_filename = utils.pdf_page_filename
+safe_stem = utils.safe_stem
+temporary_named_file = utils.temporary_named_file
+unique_name = utils.unique_name
 
 
 def test_unique_name_collision():
@@ -35,14 +47,14 @@ def test_safe_stem_sanitizes():
 
 
 def test_temporary_named_file_uses_stem(monkeypatch, tmp_path: Path):
-    monkeypatch.setattr("utils.tempfile.gettempdir", lambda: tmp_path)
+    monkeypatch.setattr(utils.tempfile, "gettempdir", lambda: tmp_path)
     out_path = temporary_named_file("receipt-123456.pdf", ".zip")
     assert out_path.name == "receipt-123456.zip"
     assert out_path.parent == tmp_path
 
 
 def test_temporary_named_file_increments_when_taken(monkeypatch, tmp_path: Path):
-    monkeypatch.setattr("utils.tempfile.gettempdir", lambda: tmp_path)
+    monkeypatch.setattr(utils.tempfile, "gettempdir", lambda: tmp_path)
     existing = tmp_path / "receipt-123456.zip"
     existing.touch()
     out_path = temporary_named_file("receipt-123456", ".zip")

@@ -4,3 +4,8 @@ pillow
 opencv-python
 numpy
 pillow-heif
+markitdown[all]
+python-docx
+python-pptx
+openpyxl
+openai
