@@ -1,11 +1,39 @@
 import os
 import re
+import shutil
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Iterable, List, Set
+from typing import Callable, Iterable, List, Set
 
 SUPPORTED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".tif", ".tiff", ".heic"}
+# Broader set used for MarkItDown-driven processing; MarkItDown will route
+# internally and may support more types, but these are safe for UI hints.
+MARKITDOWN_EXTENSIONS = {
+    ".pdf",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".tif",
+    ".tiff",
+    ".heic",
+    ".doc",
+    ".docx",
+    ".ppt",
+    ".pptx",
+    ".xls",
+    ".xlsx",
+    ".csv",
+    ".txt",
+    ".json",
+    ".xml",
+    ".html",
+    ".htm",
+    ".epub",
+    ".mp3",
+    ".wav",
+    ".zip",
+}
 
 
 def is_hidden_path(path: Path) -> bool:
@@ -55,22 +83,7 @@ def zip_directory_to_file(dir_path: Path, out_zip_path: Path) -> Path:
 
 
 def collect_files_from_zip(zip_path: str | Path) -> List[Path]:
-    extracted_files: List[Path] = []
-    target_dir = Path(tempfile.mkdtemp(prefix="pdftoimage_zip_"))
-    with zipfile.ZipFile(zip_path, "r") as zf:
-        for member in zf.infolist():
-            member_path = Path(member.filename)
-            if member.is_dir():
-                continue
-            if is_hidden_path(member_path):
-                continue
-            dest_path = target_dir / member.filename
-            dest_path.parent.mkdir(parents=True, exist_ok=True)
-            with zf.open(member) as src, open(dest_path, "wb") as dst:
-                dst.write(src.read())
-            if is_supported_file(dest_path):
-                extracted_files.append(dest_path)
-    return extracted_files
+    return collect_files_from_zip_generic(zip_path, filter_fn=is_supported_file)
 
 
 def ensure_unique_path(rel_dir: Path, filename: str, existing_paths: Set[Path]) -> Path:
@@ -87,6 +100,48 @@ def ensure_unique_path(rel_dir: Path, filename: str, existing_paths: Set[Path]) 
 
 def filter_supported(paths: Iterable[str | Path]) -> List[Path]:
     return [Path(p) for p in paths if is_supported_file(p)]
+
+
+def collect_files_from_zip_generic(
+    zip_path: str | Path,
+    filter_fn: Callable[[Path], bool] | None = None,
+    max_entries: int | None = None,
+) -> List[Path]:
+    extracted_files: List[Path] = []
+    extracted, _ = safe_extract_with_relative(zip_path, filter_fn, max_entries)
+    for path, _ in extracted:
+        extracted_files.append(path)
+    return extracted_files
+
+
+def safe_extract_with_relative(
+    zip_path: str | Path,
+    filter_fn: Callable[[Path], bool] | None = None,
+    max_entries: int | None = None,
+) -> tuple[List[tuple[Path, Path]], Path]:
+    extracted: List[tuple[Path, Path]] = []
+    target_dir = Path(tempfile.mkdtemp(prefix="pdftoimage_zip_"))
+    base_dir = target_dir.resolve()
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        for member in zf.infolist():
+            member_path = Path(member.filename)
+            if member.is_dir():
+                continue
+            if is_hidden_path(member_path):
+                continue
+            dest_path = target_dir / member.filename
+            resolved = dest_path.resolve()
+            if not str(resolved).startswith(str(base_dir)):
+                # Zip-slip attempt; skip entry
+                continue
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            with zf.open(member) as src, open(dest_path, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+            if filter_fn is None or filter_fn(dest_path):
+                extracted.append((dest_path, member_path))
+            if max_entries and len(extracted) >= max_entries:
+                break
+    return extracted, target_dir
 
 
 def temporary_named_file(stem: str, suffix: str) -> Path:
