@@ -81,7 +81,21 @@ def _create_markitdown_instance(options: MarkItDownOptions):
             kwargs["llm_model"] = options.llm_model
         if options.llm_prompt:
             kwargs["llm_prompt"] = options.llm_prompt
-    return MarkItDown(**kwargs)
+    try:
+        return MarkItDown(**kwargs)
+    except TypeError as exc:
+        # Older MarkItDown versions do not support `enable_plugins`. Retry without it.
+        if "enable_plugins" in kwargs and "enable_plugins" in str(exc):
+            retry_kwargs = dict(kwargs)
+            retry_kwargs.pop("enable_plugins", None)
+            try:
+                return MarkItDown(**retry_kwargs)
+            except Exception as retry_exc:
+                raise MarkItDownError(
+                    "Failed to initialize MarkItDown after removing the enable_plugins option. "
+                    "Please upgrade markitdown to a version that supports plugins."
+                ) from retry_exc
+        raise MarkItDownError(f"Failed to initialize MarkItDown: {exc}") from exc
 
 
 def _markdown_from_result(result: Any) -> Tuple[str, Dict[str, Any]]:
