@@ -18,13 +18,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "update:backendMode": [value: BackendMode];
-  "update:backend-mode": [value: BackendMode];
   resetImage: [];
 }>();
 
 const propagateBackendMode = (value: BackendMode) => {
   emit("update:backendMode", value);
-  emit("update:backend-mode", value);
 };
 
 const backendOptions = [
