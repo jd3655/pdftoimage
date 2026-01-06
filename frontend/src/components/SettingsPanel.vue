@@ -18,8 +18,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "update:backendMode": [value: BackendMode];
+  "update:backend-mode": [value: BackendMode];
   resetImage: [];
 }>();
+
+const propagateBackendMode = (value: BackendMode) => {
+  emit("update:backendMode", value);
+  emit("update:backend-mode", value);
+};
 
 const backendOptions = [
   { value: "Image-first (existing)", label: "Image-first", description: "Fast local preprocessing to clean PDFs and images." },
@@ -44,7 +50,7 @@ const markitdownExpanded = computed(() => props.backendMode.value === "MarkItDow
           :options="backendOptions"
           name="backend-mode"
           :model-value="backendMode.value"
-          @update:model-value="emit('update:backendMode', $event as BackendMode)"
+          @update:model-value="propagateBackendMode($event as BackendMode)"
         />
       </div>
 
