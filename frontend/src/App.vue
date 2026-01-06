@@ -78,7 +78,7 @@ onBeforeUnmount(() => job.stopPolling());
           @drop="uploads.handleDrop"
           @pick-files="uploads.handleFileInput"
           @pick-zip="uploads.handleZipInput"
-          @update-backend-mode="(mode) => (backendMode.value = mode)"
+          @update:backendMode="(mode) => (backendMode.value = mode)"
           @reset-image="resetImage"
           @start-job="() => job.start(backendMode.value, imageSettings, markitdown, uploads.files.value, uploads.zipFile.value)"
           @cancel-job="job.cancel"
