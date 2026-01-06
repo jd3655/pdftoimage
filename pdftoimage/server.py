@@ -351,8 +351,6 @@ async def meta():
     return {"supported_extensions": sorted(MARKITDOWN_EXTENSIONS)}
 
 
-_attach_static(app)
-
 @app.on_event("startup")
 async def _startup() -> None:  # pragma: no cover - side effect only
     def _cleanup_loop() -> None:
@@ -361,3 +359,6 @@ async def _startup() -> None:  # pragma: no cover - side effect only
             job_store.cleanup_old_jobs()
 
     threading.Thread(target=_cleanup_loop, daemon=True).start()
+
+
+_attach_static(app)
