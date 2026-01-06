@@ -1,4 +1,8 @@
 gradio
+fastapi
+uvicorn[standard]
+python-multipart
+aiofiles
 pdf2image
 pillow
 opencv-python

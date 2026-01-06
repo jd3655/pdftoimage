@@ -37,11 +37,52 @@ A local Gradio app that converts multi-page PDFs into per-page PNGs, cleans rece
 ### HEIC support
 `pillow-heif` is included; if installation fails on your platform, remove it from `requirements.txt` and re-install. HEIC files will be skipped without the plugin.
 
-## Running the app
+## Running the app (Gradio)
 ```bash
 python app.py
 ```
-This starts a local Gradio interface in your browser. Choose a processing backend, upload files (or a ZIP), optionally add a YouTube URL, and download the resulting ZIP.
+This starts the original Gradio interface in your browser. Choose a processing backend, upload files (or a ZIP), optionally add a YouTube URL, and download the resulting ZIP.
+
+## New local web app (FastAPI + Vue)
+### Install
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+### Development
+Open two terminals:
+1. Backend (FastAPI):
+   ```bash
+   pdftoimage
+   ```
+2. Frontend (Vite dev server with proxy):
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   The dev server proxies /api to http://127.0.0.1:7860.
+
+### Production build
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+mkdir -p pdftoimage/web
+cp -r frontend/dist pdftoimage/web/
+```
+Then start the backend:
+```bash
+pdftoimage
+```
+Visit http://127.0.0.1:7860 to use the Vue UI. The backend will serve the built frontend automatically.
+
+### Makefile shortcuts
+- `make dev` – prints the two dev commands (backend + frontend).
+- `make build-web` – installs frontend deps, builds, and copies `dist/` into `pdftoimage/web/dist`.
 
 ## Output examples
 - **Image-first**:
