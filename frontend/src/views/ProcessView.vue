@@ -70,7 +70,7 @@ const statusText = computed(() => {
         :backend-mode="backendMode"
         :image-settings="imageSettings"
         :markitdown="markitdown"
-        @update:backend-mode="emit('updateBackendMode', $event)"
+        @update:backendMode="emit('updateBackendMode', $event)"
         @reset-image="emit('resetImage')"
       />
     </div>
