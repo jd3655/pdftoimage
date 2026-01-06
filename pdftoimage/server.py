@@ -114,7 +114,6 @@ def _attach_static(application: FastAPI) -> None:
 
 
 _configure_cors(app)
-_attach_static(app)
 
 
 def _save_upload(upload: UploadFile, target_dir: Path) -> Path:
@@ -351,6 +350,8 @@ async def preview(
 async def meta():
     return {"supported_extensions": sorted(MARKITDOWN_EXTENSIONS)}
 
+
+_attach_static(app)
 
 @app.on_event("startup")
 async def _startup() -> None:  # pragma: no cover - side effect only
