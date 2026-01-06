@@ -38,7 +38,7 @@ const emit = defineEmits<{
   drop: [event: DragEvent];
   pickFiles: [event: Event];
   pickZip: [event: Event];
-  updateBackendMode: [value: BackendMode];
+  "update:backendMode": [value: BackendMode];
   resetImage: [];
   startJob: [];
   cancelJob: [];
@@ -70,7 +70,7 @@ const statusText = computed(() => {
         :backend-mode="backendMode"
         :image-settings="imageSettings"
         :markitdown="markitdown"
-        @update:backendMode="emit('updateBackendMode', $event)"
+        @update:backendMode="emit('update:backendMode', $event)"
         @reset-image="emit('resetImage')"
       />
     </div>
